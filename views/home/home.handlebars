@@ -1,0 +1,37 @@
+
+{{!-- Modal --}}
+<div class="reveal" id="initialModal" data-reveal data-options="closeOnClick:false; closeOnEsc: false;">
+	<h2 class="text-center">Ingresa tú nombre</h2>
+	<p class="lead text-justify">Este es el nombre que con el que identificarás.</p>
+
+	<div class="small-12 medium-12 large-offset-2 large-8">
+		<input id="userName" type="text" placeholder="Nombre" />
+		<button id="buttonAccept" class="button expanded">Aceptar</button>
+	</div>
+</div>
+{{!-- Modal --}}
+
+{{!-- Vista del usuario luego de ingresar su nombre --}}
+<div class="row">
+	<h1 class="text-center">nombre del usuario</h1>
+
+	<div class="small-12">
+		<div class="row">
+			<div class="large-3 columns">
+				Usuarios conectados
+			</div>
+
+			<div class="large-6 columns">
+				Mis datos
+
+				<button id="assignValue" class="button">Aumentar valor a variable</button>
+				<button id="releaseValue" class="button">Liberar variable</button>
+			</div>
+
+			<div class="large-3 columns">
+				Estado de la variable
+			</div>
+		</div>
+	</div>
+</div>
+{{!-- Vista del usuario luego de ingresar su nombre --}}

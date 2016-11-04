@@ -30,7 +30,7 @@ var app     = express();
 
 //  Session values
 var session = require("express-session")({
-    secret: "so",
+    secret: "SO-Semaforos",
     resave: true,
     saveUninitialized: true
 });
@@ -88,16 +88,18 @@ Creando el socket de conexión para tiempo real
 
 io.on('connection', function (socket) {
     console.log('someone connected')
+    console.log(activeUsers)
 
     //  Usuarios conectados
     socket.emit('user-connected', activeUsers)
 
     socket.on('user-connected', function(data) {
-        console.log(activeUsers)
+        console.log('Active users')
+        console.log(socket.handshake.session.appName)
         // if (activeUsers.length >= maxClients) return false;
 
         if (socket.handshake.session.appName === undefined) {
-            socket.handshake.session.appName     = 'SO-Semáforos';
+            socket.handshake.session.appName     = 'SO-Semaforos';
             socket.handshake.session.date        = new Date();
             socket.handshake.session.myName      = data.myName;
         }
@@ -105,13 +107,13 @@ io.on('connection', function (socket) {
             myName: socket.handshake.session.myName || '-'
         }
 
+        console.log('response')
+        console.log(response)
+
         activeUsers.push(response);
 
         io.sockets.emit('user-connected', activeUsers);
     });
-
-
-
 
     //socket.emit('user-actions', users);
 });
@@ -119,7 +121,7 @@ io.on('connection', function (socket) {
 function createSessionForUser (request, params) {
     //  Validate if session exist
     if (request.appName === undefined) {
-        request.appName     = 'SO-Semáforos';
+        request.appName     = 'SO-Semaforos';
         request.date        = new Date();
         request.myName      = purifyUserName(params.myName);
     }

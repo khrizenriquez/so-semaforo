@@ -8,16 +8,37 @@ var socket = io.connect('http://'+ ipData +':3005', { 'forceNew': true });
 //	Mostrando la modal inicial
 $('#initialModal').foundation('open')
 
+//	Obteniendo los valores del servidor en caso recarguen la página del cliente
+socket.on('user-connected', function (data) {
+	console.log(data)
+	var selector = $('#connected-users')
+
+	//	Para limpiar los valores
+	selector.html('')
+
+	data.some(function (element, index, arr) {
+		selector.append('<p>'+ element.myName +'</p>')
+	})
+});
+
 //	Cerrando modal cuando el usuario presione aceptar, falta validar longitud del nombre
 $('#buttonAccept').on('click', function (e) {
 	//	Cierro la modal
 	$('#initialModal').foundation('close')
 	var userName = $('#userName').val()
 
-	//	Envio los valores al servidor por medio de sockets
+	//	Escucho los valores que manda el servidor web
 	socket.on('user-connected', function (data) {
-		console.log(data);
+		var selector = $('#connected-users')
+
+		//	Para limpiar los valores
+		selector.html('')
+
+		data.some(function (element, index, arr) {
+			selector.append('<p>'+ element.myName +'</p>')
+		})
 	});
+	//	Envio los valores al servidor por medio de sockets
 	socket.emit('user-connected', { myName: userName });
 })
 

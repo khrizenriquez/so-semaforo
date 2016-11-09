@@ -3,7 +3,8 @@
 var os          = require('os'), 
     ifaces      = os.networkInterfaces(), 
     localIp     = '', 
-    activeUsers = [];
+    activeUsers = [], 
+    activeUser  = [];
 //  http://stackoverflow.com/questions/3653065/get-local-ip-address-in-node-js
 Object.keys(ifaces).forEach(function (ifname) {
     var alias = 0;
@@ -24,9 +25,10 @@ Object.keys(ifaces).forEach(function (ifname) {
 });
 
 //  Server with express
-var express = require('express');
-var path    = require('path');
-var app     = express();
+var express = require('express'), 
+    path    = require('path'), 
+    app     = express(), 
+    crypto  = require('crypto')
 
 //  Session values
 var session = require("express-session")({
@@ -52,7 +54,6 @@ Bloqueando información del servidor (headers)
 ********************************/
 app.disable('x-powered-by');
 
-
 /********************************
 Motor de plantilla
 ********************************/
@@ -63,14 +64,14 @@ var exphbs = require('express-handlebars');
 /********************************
 Middleware
 ********************************/
-app.use(session);
+app.use(session)
 
 app.engine('handlebars', exphbs({
     extname:        '.handlebars', 
     defaultLayout:  'main', 
     layoutsDir:     __dirname + '/views/layouts', 
     partialsDir:    __dirname + '/views/partials'
-}));
+}))
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view cache', false);
@@ -81,10 +82,33 @@ io.use(sharedsession(session, {
     autoSave:true
 }));
 
+//  Inicialización del semaforo
+var sem = require('semaphore')(1)
+console.log(sem)
+
+/********************************
+Memoria compartida
+********************************/
+var memShm = require('mem-shm')
+//  Ruta dentro de /dev/shm, nombre archivo
+var mem = new memShm("so_semaforos","memoria")
+
+var memoryId    = "test"
+var key         = "test"
+var val         = 1
+
+//  Configuración inicial
+mem.set(memoryId, key, val)
+
+console.log(mem.get());
 
 /********************************
 Creando el socket de conexión para tiempo real
 ********************************/
+
+activeUsers = []
+var activeUser = {}
+console.log(activeUsers)
 
 io.on('connection', function (socket) {
     console.log('someone connected')
@@ -92,38 +116,48 @@ io.on('connection', function (socket) {
 
     //  Usuarios conectados
     socket.emit('user-connected', activeUsers)
+    if (activeUser.usingMemory === true) {
+        socket.emit('shared-memory', {'memory': activeUser.memoryInfo})
+    } else {
+        socket.emit('shared-memory', {'memory': mem.get()})
+    }
 
     socket.on('user-connected', function(data) {
-        console.log('Active users')
-        console.log(socket.handshake.session.appName)
         // if (activeUsers.length >= maxClients) return false;
 
         if (socket.handshake.session.appName === undefined) {
-            socket.handshake.session.appName     = 'SO-Semaforos';
-            socket.handshake.session.date        = new Date();
-            socket.handshake.session.myName      = data.myName;
+            let date    = new Date(),
+                myName  = data.myName
+            socket.handshake.session.appName     = data.appName
+            socket.handshake.session.date        = date
+            socket.handshake.session.myName      = myName
         }
         let response = {
-            myName: socket.handshake.session.myName || '-'
+            myName: socket.handshake.session || '-'
         }
 
-        console.log('response')
-        console.log(response)
+        activeUser = response
 
-        activeUsers.push(response);
+        activeUsers.push(response)
 
-        io.sockets.emit('user-connected', activeUsers);
-    });
+        io.sockets.emit('user-connected', activeUsers)
+    })
+
+    socket.on('shared-memory', function (data) {
+        io.sockets.emit('shared-memory', mem.get())
+    })
 
     //socket.emit('user-actions', users);
-});
+})
 
 function createSessionForUser (request, params) {
     //  Validate if session exist
     if (request.appName === undefined) {
-        request.appName     = 'SO-Semaforos';
-        request.date        = new Date();
-        request.myName      = purifyUserName(params.myName);
+        let date    = new Date(), 
+            myName  = purifyUserName(params.myName)
+        request.date        = date
+        request.myName      = myName
+        request.appName     = params.appName
     }
 }
 
@@ -145,29 +179,42 @@ var connectUser = function (request, params) {
     return response;
 }
 
-var sem = require('semaphore')(1)
-console.log(sem)
-
 //  Routes
 var home  = require('./routes/home');
 app.use('/', home);
 var i = 0
 app.get('/test', function (req, res) {
-    console.log('Dentro de get')
-
+    console.log('Usuario:')
+    console.log(req.param)
     /********************************
     Memoria
     ********************************/
+    var response = {}
     if (i < 1) {
         //  Wait
         sem.take(function() {
             console.log('dentro del take ' + i)
-        });
+            val++
+            console.log('Variable', mem)
+            mem.set(memoryId, key, val)
+            activeUser.usingMemory = true
+            activeUser.memoryInfo = mem.get()
+            //activeUser.userId = req.body.
+
+            console.log('Variable luego del set ', mem)
+        })
         i++
+
+        response.message    = 'ok'
+        response.info       = activeUser
+    } else {
+        response.message    = 'fail'
+        response.info       = activeUser
     }
     console.log(i)
+    io.sockets.emit('shared-memory', mem.get())
 
-    return res.json()
+    return res.json(response)
 })
 
 app.get('/release', function (req, res) {
@@ -179,7 +226,11 @@ app.get('/release', function (req, res) {
         console.log('Liberando de get')
         //  Signal
         sem.leave()
-        i--;
+
+        activeUser.usingMemory = false
+        activeUser.memoryInfo = {}
+
+        i--
     }
     //console.log(sem)
 

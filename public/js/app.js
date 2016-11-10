@@ -2,8 +2,8 @@
 
 $(document).foundation()
 
-var ipData = (window.location.href.match('localhost') !== null) ? 'localhost' : '192.168.0.18';
-//var ipData = (window.location.href.match('localhost') !== null) ? 'localhost' : '159.203.5.118';
+//var ipData = (window.location.href.match('localhost') !== null) ? 'localhost' : '192.168.0.18';
+var ipData = (window.location.href.match('localhost') !== null) ? 'localhost' : '159.203.5.118';
 var socket = io.connect('http://'+ ipData +':3005', { 'forceNew': true });
 
 // http://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
@@ -28,6 +28,8 @@ socket.on('shared-memory', function (data) {
 	} else {
 		try	{
 			memory = data.memory.test.test
+
+			text = 'Valor de la variable: ' + memory + ' (en uso)'
 		} catch (err) {}
 		//'Valor de la variable: ' + data.memory.info.memoryInfo.test.test + ' utilizada por ' + dadta.memory.memoryInfo.myName
 	}
@@ -92,13 +94,15 @@ $('#userName').on('keypress', function (e) {
 })
 
 $('#assignValue').on('click', function () {
-	var data = $.getJSON('/test', {}, function () {})
+	var data = $.getJSON('/test/' + window.sessionStorage.getItem('userId'), {
+
+	}, function () {})
 
 	data.done(function (response) {
 		if (response.message === 'ok') {
 			showGeneralModal('Información', 'Acabas de utilizar la variable')
 		} else if (response.message === 'fail') {
-			showGeneralModal('Información', 'Variable en uso por ' + response.info.myName.myName)
+			showGeneralModal('Información', 'Variable en uso, no puedes utilizarla hasta que se libere')
 		}
 	})
 	data.fail(function (err) {
@@ -107,13 +111,22 @@ $('#assignValue').on('click', function () {
 })
 
 $('#releaseValue').on('click', function () {
-	var data = $.getJSON('/release', {}, function () {})
+	var data = $.getJSON('/release/' + window.sessionStorage.getItem('userId'), {
+
+	}, function () {})
 
 	data.done(function (response) {
-		var selector = $('#variable-status')
-		var text = 'Valor de la variable: ' + response.info.memoryInfo.test.test + ' utilizada por ' + response.info.memoryInfo.myName.myName
-		selector.html(text)
-		console.log(response)
+		var r = response
+		if (r.message === 'ok') {
+			showGeneralModal('Liberación de variable', r.info)
+		} else 
+		if (r.message === 'fail') {
+			showGeneralModal('Liberación de variable', r.info)
+		} else {}
+		//var selector = $('#variable-status')
+		//var text = 'Valor de la variable: ' + response.info.memoryInfo.test.test + ' utilizada por ' + response.info.memoryInfo.myName.myName
+		//selector.html(text)
+		console.log(r)
 	})
 	data.fail(function (err) {
 		console.log(err)

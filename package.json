@@ -17,9 +17,7 @@
     "socket.io": "^1.5.1"
   },
   "devDependencies": {
-    "crypto": "0.0.3",
     "mem-shm": "^0.2.6",
-    "memored": "^0.1.0",
     "semaphore": "^1.0.5"
   }
 }

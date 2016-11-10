@@ -84,7 +84,6 @@ io.use(sharedsession(session, {
 
 //  Inicialización del semaforo
 var sem = require('semaphore')(1)
-console.log(sem)
 
 /********************************
 Memoria compartida
@@ -100,19 +99,15 @@ var val         = 1
 //  Configuración inicial
 mem.set(memoryId, key, val)
 
-console.log(mem.get());
-
 /********************************
 Creando el socket de conexión para tiempo real
 ********************************/
 
 activeUsers = []
 var activeUser = {}
-console.log(activeUsers)
 
 io.on('connection', function (socket) {
     console.log('someone connected')
-    console.log(activeUsers)
 
     //  Usuarios conectados
     socket.emit('user-connected', activeUsers)
@@ -123,6 +118,7 @@ io.on('connection', function (socket) {
     }
 
     socket.on('user-connected', function(data) {
+        console.log(data)
         // if (activeUsers.length >= maxClients) return false;
 
         if (socket.handshake.session.appName === undefined) {
@@ -183,58 +179,98 @@ var connectUser = function (request, params) {
 var home  = require('./routes/home');
 app.use('/', home);
 var i = 0
-app.get('/test', function (req, res) {
-    console.log('Usuario:')
-    console.log(req.param)
+app.get('/test/:userKey', function (req, res) {
     /********************************
     Memoria
     ********************************/
-    var response = {}
+    let userId      = req.params.userKey || null, 
+        response    = {}
     if (i < 1) {
         //  Wait
         sem.take(function() {
             console.log('dentro del take ' + i)
             val++
-            console.log('Variable', mem)
             mem.set(memoryId, key, val)
             activeUser.usingMemory = true
             activeUser.memoryInfo = mem.get()
-            //activeUser.userId = req.body.
-
-            console.log('Variable luego del set ', mem)
+            activeUser.userId = userId
         })
         i++
 
         response.message    = 'ok'
         response.info       = activeUser
     } else {
+        activeUsers.some(function (element, index, arr) {
+            console.log(element)
+            console.log(userId)
+            console.log('---------------')
+            if (element.userId === userId) {
+                activeUser.name = element.name
+
+                return false
+            }
+        })
         response.message    = 'fail'
         response.info       = activeUser
     }
-    console.log(i)
     io.sockets.emit('shared-memory', mem.get())
 
     return res.json(response)
 })
 
-app.get('/release', function (req, res) {
+app.get('/release/:userKey', function (req, res) {
+    let userKey = req.params.userKey || null
+
+    console.log(activeUser)
+    console.log(userKey)
+    console.log('-----------------------')
     /********************************
     Memoria
     ********************************/
     //console.log(sem.current)
-    if (i === 1) {
-        console.log('Liberando de get')
-        //  Signal
-        sem.leave()
+    let response = {}
+    if (activeUser.userId !== userKey) {
+        let userName = null
+        activeUsers.some(function (element, index, arr) {
+            console.log(element)
+            console.log('Element')
+            if (element.userId === userKey) {
+                userName = element.name
 
-        activeUser.usingMemory = false
-        activeUser.memoryInfo = {}
+                return false
+            }
+        })
+        if (userName === null) {
+            response.message    = 'fail'
+            response.info       = `No se puede liberar la variable`
 
-        i--
+            return res.json(response)
+        }
+
+        response.message    = 'fail'
+        response.info       = `Únicamente ${userName} puede liberar la variable`
+
+        return res.json(response)
+    } else {
+        if (i === 1) {
+            console.log('Liberando de get')
+            //  Signal
+            sem.leave()
+
+            response.message    = 'ok'
+            response.info       = 'Variable liberada'
+
+            activeUser.usingMemory = false
+            activeUser.memoryInfo = {}
+
+            i--
+
+            io.sockets.emit('shared-memory', mem.get())
+        }
+
+        return res.json(response)
     }
-    //console.log(sem)
-
-    return res.json()
+    return res.json({})
 })
 
 //  Drone actions

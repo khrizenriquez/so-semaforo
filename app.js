@@ -179,21 +179,22 @@ var connectUser = function (request, params) {
 var home  = require('./routes/home');
 app.use('/', home);
 var i = 0
-app.get('/test/:userKey', function (req, res) {
+app.get('/test/:userKey/:userName', function (req, res) {
     /********************************
     Memoria
     ********************************/
     let userId      = req.params.userKey || null, 
-        response    = {}
+        response    = {}, 
+        userName    = req.params.userName || null
     if (i < 1) {
         //  Wait
         sem.take(function() {
-            console.log('dentro del take ' + i)
             val++
             mem.set(memoryId, key, val)
-            activeUser.usingMemory = true
-            activeUser.memoryInfo = mem.get()
-            activeUser.userId = userId
+            activeUser.usingMemory  = true
+            activeUser.memoryInfo   = mem.get()
+            activeUser.userId       = userId
+            activeUser.name         = userName
         })
         i++
 
@@ -213,13 +214,14 @@ app.get('/test/:userKey', function (req, res) {
         response.message    = 'fail'
         response.info       = activeUser
     }
-    io.sockets.emit('shared-memory', mem.get())
+    io.sockets.emit('shared-memory', mem.get() + ' (En uso por '+ activeUser.name +')')
 
     return res.json(response)
 })
 
-app.get('/release/:userKey', function (req, res) {
-    let userKey = req.params.userKey || null
+app.get('/release/:userKey/:userName', function (req, res) {
+    let userKey     = req.params.userKey || null
+        //userName    = req.params.userName || null
 
     console.log(activeUser)
     console.log(userKey)

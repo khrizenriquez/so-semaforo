@@ -6,13 +6,17 @@
 
 	<div class="small-12 medium-12 large-offset-2 large-8">
 		<input id="userName" type="text" placeholder="Nombre" />
-		<button type="button" id="buttonAccept" class="button expanded">Aceptar</button>
+		<button type="button" id="buttonAccept" class="hollow button expanded">Aceptar</button>
 	</div>
 </div>
 
 <div class="reveal" id="generalModal" data-reveal>
 	<h2 class="text-center title"></h2>
 	<p class="lead text-justify content"></p>
+
+	<button class="close-button" data-close aria-label="Close reveal" type="button">
+    	<span aria-hidden="true">&times;</span>
+  	</button>
 </div>
 {{!-- Modal --}}
 
@@ -23,18 +27,18 @@
 	<div class="small-12">
 		<div class="row">
 			<div class="small-6 large-3 columns">
-				<h3 class="text-center">Usuarios conectados</h3>
+				<h4 class="text-center">Usuarios conectados</h4>
 				<div id="connected-users"></div>
 			</div>
 
-			<div class="large-6 columns">
-				<h3 class="text-center">Estado de la variable</h3>
+			<div class="small-6 large-3 columns">
+				<h4 class="text-center">Estado de la variable</h4>
 				<p id="variable-status"></p>
 			</div>
 
-			<div class="small-12 large-6 columns">
-				<button type="button" id="assignValue" class="button">Aumentar valor a variable</button>
-				<button type="button" id="releaseValue" class="button">Liberar variable</button>
+			<div class="small-12 large-6 columns text-center">
+				<button type="button" id="assignValue" class="expanded success hollow button">Aumentar valor a variable</button>
+				<button type="button" id="releaseValue" class="expanded alert hollow button">Liberar variable</button>
 			</div>
 		</div>
 	</div>

@@ -19,8 +19,8 @@ function guid() {
 
 socket.on('shared-memory', function (data) {
 	console.log(data)
-	var memory = {}
-	var text = ''
+	var memory 	= {}, 
+		text 	= ''
 	if (data.memory === undefined) {
 		memory = data.test.test
 
@@ -47,7 +47,7 @@ socket.on('user-connected', function (data) {
 	selector.html('')
 
 	data.some(function (element, index, arr) {
-		selector.append('<p>'+ element.myName.myName +'</p>')
+		selector.append('<p class="connected-users">'+ element.myName.myName +'</p>')
 	})
 })
 
@@ -94,9 +94,10 @@ $('#userName').on('keypress', function (e) {
 })
 
 $('#assignValue').on('click', function () {
-	var data = $.getJSON('/test/' + window.sessionStorage.getItem('userId'), {
-
-	}, function () {})
+	var data = $.getJSON('/test/' 
+		+ window.sessionStorage.getItem('userId') + '/'
+		+ window.sessionStorage.getItem('userName'), 
+		{}, function () {})
 
 	data.done(function (response) {
 		if (response.message === 'ok') {
@@ -111,9 +112,10 @@ $('#assignValue').on('click', function () {
 })
 
 $('#releaseValue').on('click', function () {
-	var data = $.getJSON('/release/' + window.sessionStorage.getItem('userId'), {
-
-	}, function () {})
+	var data = $.getJSON('/release/' 
+		+ window.sessionStorage.getItem('userId') + '/' 
+		+ window.sessionStorage.getItem('userName'), 
+		{}, function () {})
 
 	data.done(function (response) {
 		var r = response

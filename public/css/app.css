@@ -1,0 +1,13 @@
+html {
+	background: #ecf0f1;
+}
+
+#assignValue, #releaseValue {
+	font-size: 1.5em;
+}
+
+#connected-users p, #variable-status p {
+	border-bottom: 1px solid black;
+	margin-bottom: 0.30em;
+	transition: all 0.25s linear;
+}

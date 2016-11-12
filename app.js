@@ -111,11 +111,7 @@ io.on('connection', function (socket) {
 
     //  Usuarios conectados
     socket.emit('user-connected', activeUsers)
-    if (activeUser.usingMemory === true) {
-        socket.emit('shared-memory', {'memory': activeUser.memoryInfo})
-    } else {
-        socket.emit('shared-memory', {'memory': mem.get()})
-    }
+    socket.emit('shared-memory', mem.get().test.test)
 
     socket.on('user-connected', function(data) {
         console.log(data)
@@ -140,7 +136,7 @@ io.on('connection', function (socket) {
     })
 
     socket.on('shared-memory', function (data) {
-        io.sockets.emit('shared-memory', mem.get())
+        io.sockets.emit('shared-memory', mem.get().test.test)
     })
 
     //socket.emit('user-actions', users);
@@ -214,7 +210,9 @@ app.get('/test/:userKey/:userName', function (req, res) {
         response.message    = 'fail'
         response.info       = activeUser
     }
-    io.sockets.emit('shared-memory', mem.get() + ' (En uso por '+ activeUser.name +')')
+    //io.sockets.emit('shared-memory', mem.get().test.test)
+    io.sockets.emit('shared-memory', mem.get().test.test 
+        + ' (En uso por '+ activeUser.name +')')
 
     return res.json(response)
 })
@@ -267,7 +265,7 @@ app.get('/release/:userKey/:userName', function (req, res) {
 
             i--
 
-            io.sockets.emit('shared-memory', mem.get())
+            io.sockets.emit('shared-memory', mem.get().test.test)
         }
 
         return res.json(response)

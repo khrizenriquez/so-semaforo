@@ -19,20 +19,7 @@ function guid() {
 
 socket.on('shared-memory', function (data) {
 	console.log(data)
-	var memory 	= {}, 
-		text 	= ''
-	if (data.memory === undefined) {
-		memory = data.test.test
-
-		text = 'Valor de la variable: ' + memory
-	} else {
-		try	{
-			memory = data.memory.test.test
-
-			text = 'Valor de la variable: ' + memory + ' (en uso)'
-		} catch (err) {}
-		//'Valor de la variable: ' + data.memory.info.memoryInfo.test.test + ' utilizada por ' + dadta.memory.memoryInfo.myName
-	}
+	var text 	= 'Valor de la variable: ' + data
 
 	var selector = $('#variable-status')
 	selector.html(text)
